@@ -1,37 +1,53 @@
-## Welcome to GitHub Pages
+## Welcome to Net-Payment-CCAvenue-NonSeamless
 
-You can use the [editor on GitHub](https://github.com/shardiwal/cpan-Net-Payment-CCAvenue-NonSeamless/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+CCAvenue billing page (Non-Seamless) - Avoid the hassle of developing and managing your own checkout page. Use the customizable billing page provided by CCAvenue which enables you to collect billing and shipping information of the customer.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+CCAvenue integration document can be found here [Document](https://mars.ccavenue.com/downloads/CCAvenue_Integration%20_Ver_3_1.pdf).
 
-### Markdown
+### Installation
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+```
+	perl Makefile.PL
+	make
+	make test
+	make install
 
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
 ```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+### Uses
 
-### Jekyll Themes
+```
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/shardiwal/cpan-Net-Payment-CCAvenue-NonSeamless/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+    use Net::Payment::CCAvenue::NonSeamless;
+
+    my $foo = Net::Payment::CCAvenue::NonSeamless->new(
+        encryption_key => 'xxxx',
+        access_code => 'xxxx',
+        merchant_id => 'xxxxx',
+        currency => 'AED',
+        amount => '3.00',
+        redirect_url => 'http://example.com/order/success_or_fail',
+        cancel_url => 'http://example.com/order/cancel',
+    );
+    
+    # Get NonSeamless integration form
+    $foo->payment_form();
+
+    # Above method returns html form and your need to render this and click on pay button to start payment.
+
+    my $handle_response = Net::Payment::CCAvenue::NonSeamless::Response->new(
+        encryption_key => 'xxxx',
+        access_code => 'xxxx',
+        merchant_id => 'xxxxx',
+        order_no => 'Returned orderNo query param value',
+        enc_response => 'Returned encResp query param value',
+    );
+
+    # Returns true if payment was success
+    $handle_response->is_success();
+
+```
 
 ### Support or Contact
 
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+Having trouble with this module? Check out perldoc Net::Payment::CCAvenue::NonSeamless or [contact support](rakesh.shardiwal@gmail.com) and i’ll help you sort it out.
