@@ -21,6 +21,29 @@ To install this module, run the following commands:
 	make test
 	make install
 
+
+SYNOPSIS
+
+CCAvenue billing page (Non-Seamless) - Avoid the hassle of developing and managing your own checkout page. Use the customizable billing page provided by CCAvenue which enables you to collect billing and shipping information of the customer.
+
+    use Net::Payment::CCAvenue::NonSeamless;
+
+    my $foo = Net::Payment::CCAvenue::NonSeamless->new(
+        encryption_key => 'xxxx',
+        access_code => 'xxxx',
+        merchant_id => 'xxxxx',
+        currency => 'AED',
+        amount => '3.00',
+        redirect_url => 'http://example.com/order/success_or_fail',
+        cancel_url => 'http://example.com/order/cancel',
+    );
+    
+    # Get NonSeamless integration form
+    $foo->payment_form();
+
+    # Above method returns html form and your need to render this and click on pay button to start payment.
+
+
 SUPPORT AND DOCUMENTATION
 
 After installing, you can find documentation for this module with the
