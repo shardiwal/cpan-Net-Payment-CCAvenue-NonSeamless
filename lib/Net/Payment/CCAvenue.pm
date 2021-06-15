@@ -1,9 +1,9 @@
 package Net::Payment::CCAvenue;
 
-use Moo;
+use Moose;
 use Digest::MD5 qw/md5_hex/;
-use URI;
 use Crypt::Mode::CBC;
+use URI;
 
 =head1 NAME
 

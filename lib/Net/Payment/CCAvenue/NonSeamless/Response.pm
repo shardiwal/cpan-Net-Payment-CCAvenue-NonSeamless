@@ -1,6 +1,6 @@
 package Net::Payment::CCAvenue::NonSeamless::Response;
 
-use Moo;
+use Moose;
 extends 'Net::Payment::CCAvenue';
 
 

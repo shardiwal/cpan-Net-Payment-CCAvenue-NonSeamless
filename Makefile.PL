@@ -18,6 +18,7 @@ WriteMakefile(
         'Test::More' => '0',
     },
     PREREQ_PM => {
+        'Moose'            => '0',
         'URI'              => '0',
         'Crypt::Mode::CBC' => '0',
         'Digest::MD5'      => '0',
