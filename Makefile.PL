@@ -26,6 +26,20 @@ WriteMakefile(
         'DateTime'         => '0',
         'JSON::XS'         => '0',
     },
+    META_MERGE => {
+        'meta-spec' => { version => 2 },
+        resources => {
+            bugtracker => {
+                web => 'https://github.com/shardiwal/cpan-Net-Payment-CCAvenue-NonSeamless/issues'
+            },
+            homepage => 'https://github.com/shardiwal/cpan-Net-Payment-CCAvenue-NonSeamless/blob/gh-pages/index.md',
+            repository => {
+                type => 'git',
+                url => 'git@github.com:shardiwal/cpan-Net-Payment-CCAvenue-NonSeamless.git',
+                web => 'https://github.com/shardiwal/cpan-Net-Payment-CCAvenue-NonSeamless.git'
+            }
+        }
+    },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES    => 'Net-Payment-CCAvenue-NonSeamless-*' },
 );
