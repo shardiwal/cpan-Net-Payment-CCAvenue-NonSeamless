@@ -22,6 +22,7 @@ our $VERSION = '0.02';
 =over 2
 
 =item L<Net::Payment::CCAvenue::NonSeamless>
+
 =item L<Net::Payment::CCAvenue::NonSeamless::Response>
 
 =head1 Attributes
