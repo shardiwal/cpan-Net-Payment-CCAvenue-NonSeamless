@@ -43,6 +43,17 @@ CCAvenue billing page (Non-Seamless) - Avoid the hassle of developing and managi
 
     # Above method returns html form and your need to render this and click on pay button to start payment.
 
+    my $handle_response = Net::Payment::CCAvenue::NonSeamless::Response->new(
+        encryption_key => 'xxxx',
+        access_code => 'xxxx',
+        merchant_id => 'xxxxx',
+        order_no => 'Returned orderNo query param value',
+        enc_response => 'Returned encResp query param value',
+    );
+
+    # Returns true if payment was success
+    $handle_response->is_success();
+
 
 SUPPORT AND DOCUMENTATION
 
