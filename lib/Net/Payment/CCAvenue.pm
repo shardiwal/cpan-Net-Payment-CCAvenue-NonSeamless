@@ -17,6 +17,13 @@ Version 0.01
 
 our $VERSION = '0.01';
 
+=head1 See More
+
+=over 2
+
+=item L<Net::Payment::CCAvenue::NonSeamless>
+=item L<Net::Payment::CCAvenue::NonSeamless::Response>
+
 =head1 Attributes
 
 =head2 service_url

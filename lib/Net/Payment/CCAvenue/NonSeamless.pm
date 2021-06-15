@@ -42,6 +42,13 @@ our $VERSION = '0.01';
 
 =cut
 
+=head1 See More
+
+=over 2
+
+=item L<Net::Payment::CCAvenue>
+=item L<Net::Payment::CCAvenue::NonSeamless::Response>
+
 =head1 Attributes
 
 =head2 request_type
