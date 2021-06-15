@@ -1,13 +1,12 @@
-package Net::Payment::CCAvenue;
+package Net::Payment::CCAvenue::NonSeamless::Response;
 
 use Moo;
-use Digest::MD5 qw/md5_hex/;
-use URI;
-use Crypt::Mode::CBC;
+extends 'Net::Payment::CCAvenue';
+
 
 =head1 NAME
 
-Net::Payment::CCAvenue::NonSeamless - Processing orders using CCAvenue billing page!
+Net::Payment::CCAvenue::NonSeamless::Response - Reads the returned encoded response!
 
 =head1 VERSION
 
@@ -17,141 +16,118 @@ Version 0.01
 
 our $VERSION = '0.01';
 
-=head1 Attributes
+=head1 SYNOPSIS
 
-=head2 service_url
+    CCAvenue billing page (Non-Seamless) - On receiving the authorization status from the bank, CCAvenue sends the response back to your website with the transaction status.
 
-CCAVENUE service url.
+    Query parameters are <orderNo> and <encResp>
 
-=head2 encryption_key
+    use Net::Payment::CCAvenue::NonSeamless::Response;
 
-Encryption key provided by CCAVENUE.
+    my $foo = Net::Payment::CCAvenue::NonSeamless::Response->new(
+        encryption_key => 'xxxx',
+        access_code => 'xxxx',
+        merchant_id => 'xxxxx',
+        order_no => 'Returned orderNo query param value',
+        enc_response => 'Returned encResp query param value',
+    );
 
-=head2 access_code
-
-Access code provided by CCAVENUE.
-
-=head2 merchant_id
-
-Merchant identifier provided by CCAVENUE.
+    # Returns true if payment was success
+    $foo->is_success();
 
 =cut
 
-has service_url => (
-    is         => 'ro',
-    isa        => 'URI',
-    lazy_build => 1
-);
+=head1 Attributes
 
-sub _build_service_url {
-    my ($self) = @_;
-    return URI->new('https://secure.ccavenue.ae/transaction/transaction.do');
-}
+=head2 order_no
 
-has [ qw(encryption_key access_code merchant_id) ] => (
-    is => 'ro',
-    isa => 'Str',
+Order number (C<orderNo>) as query parameter returned from CCAvenue sends to callback url.
+
+=head2 enc_response
+
+Encrypted response (C<encResp>) as query parameter returned from CCAvenue sends to callback url.
+
+=cut
+
+has [qw(order_no enc_response)] => (
+    is       => 'ro',
+    isa      => 'Str',
     required => 1
 );
 
-=head2 encryption_key_md5
+=head2 decoded_response
 
-128-bit hash value of the encryption key.
-
-=cut
-
-has encryption_key_md5 => (
-    is         => 'ro',
-    isa        => 'Str',
-    lazy_build => 1,
-);
-
-sub _build_encryption_key_md5 {
-    my ($self) = @_;
-    return md5_hex $self->encryption_key;
-}
-
-=head2 encryption_key_bin
-
-Binary format of 128 bit hash value of encryption key.
+Decoded response from CCAvenue.
 
 =cut
 
-has encryption_key_bin => (
+has decoded_response => (
     is         => 'ro',
-    isa        => 'Str',
-    lazy_build => 1,
-);
-
-sub _build_encryption_key_bin {
-    my ($self) = @_;
-    return pack("H*",$self->encryption_key_md5);
-}
-
-=head2 aes_cipher
-
-AES encryption cipher.
-
-=cut
-
-has aes_cipher => (
-    is         => 'ro',
-    isa        => 'Crypt::Mode::CBC',
+    isa        => 'Maybe[HashRef]',
     lazy_build => 1
 );
 
-sub _build_aes_cipher {
+sub _build_decoded_response {
     my ($self) = @_;
-    return Crypt::Mode::CBC->new( 'AES', 1 );
+    return $self->decrypt_data($self->enc_response);
 }
 
-=head2 init_vector
+=head2 is_valid_request
 
-Init vector for AES encryption.
+Returns C<true> if callback url get the encoded response.
+
+=head2 is_success
+
+Returns C<true> if payment has been processed successfully and it has bank reciept number.
 
 =cut
 
-has init_vector => (
-    is      => 'ro',
-    isa     => 'Str',
-    default => sub {
-        return pack( "C*",
-            0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-            0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f );
-    }
+has [ qw(is_valid_request is_success)] => (
+    is => 'ro',
+    isa => 'Bool',
+    lazy_build => 1,
 );
 
-=head1 SUBROUTINES/METHODS
-
-=head2 encrypt_data
-
-Data to be encrypted as 128 bit AES encryption.
-
-=cut
-
-sub encrypt_data {
-    my ( $self, $data ) = @_;
-    return unpack(
-        'H*',
-        $self->aes_cipher->encrypt(
-            $data, $self->encryption_key_bin, $self->init_vector
-        )
-    );
+sub _build_is_valid_request {
+    return 0 unless $self->decoded_response;
+    return 1;
 }
 
-=head2 decrypt_data
+sub _build_is_success {
+    return 0 unless $self->bank_receipt_no;
+    return 1;
+}
 
-Decrypte the given encrypted data.
+=head2 response_message
+
+Returns response message, could be error message or any other message
+
+=head2 bank_receipt_no
+
+Returns bank reciept number
+
+=head2 tracking_id
+
+Returns bank tracking identifier
 
 =cut
 
-sub decrypt_data {
-    my ( $self, $encrypted_data ) = @_;
-    return $self->aes_cipher->decrypt(
-        pack( 'H*', $encrypted_data ),
-        $self->encryption_key_bin,
-        $self->init_vector
-    );
+has [ qw(response_message bank_receipt_no tracking_id) ] => (
+    is => 'ro',
+    isa => 'Maybe[Str]',
+    lazy_build => 1,
+);
+
+sub _build_response_message {
+    return $self->decoded_response->{'status_message'};
+}
+
+sub _build_bank_receipt_no {
+    return $self->decoded_response->{'bank_receipt_no'};
+}
+
+sub _build_tracking_id {
+    return $self->decoded_response->{'tracking_id'};
 }
 
 =head1 AUTHOR
@@ -163,7 +139,6 @@ Rakesh Kumar Shardiwal, C<< <rakesh.shardiwal at gmail.com> >>
 Please report any bugs or feature requests to C<bug-net-payment-ccavenue-nonseamless at rt.cpan.org>, or through
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Net-Payment-CCAvenue-NonSeamless>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
-
 
 =head1 SUPPORT
 
@@ -241,4 +216,4 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =cut
 
-1; # End of Net::Payment::CCAvenue::NonSeamless
+1;    # End of Net::Payment::CCAvenue::NonSeamless

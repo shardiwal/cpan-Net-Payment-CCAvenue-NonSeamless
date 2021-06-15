@@ -4,10 +4,8 @@ use Moo;
 extends 'Net::Payment::CCAvenue';
 
 use URI;
-use Crypt::Mode::CBC;
 use CGI ( ':standard', '-no_debug', '-no_xhtml' );
 use DateTime;
-use JSON::XS;
 
 =head1 NAME
 
@@ -44,26 +42,21 @@ our $VERSION = '0.01';
 
 =cut
 
-has aes_cipher => (
-    is         => 'ro',
-    isa        => 'Crypt::Mode::CBC',
-    lazy_build => 1
-);
+=head1 Attributes
 
-sub _build_aes_cipher {
-    my ($self) = @_;
-    return Crypt::Mode::CBC->new( 'AES', 1 );
-}
+=head2 request_type
 
-has init_vector => (
-    is      => 'ro',
-    isa     => 'Str',
-    default => sub {
-        return pack( "C*",
-            0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-            0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f );
-    }
-);
+Sets the request type. Default as C<JSON>.
+
+=head2 response_type
+
+Sets the response type. Default as C<JSON>.
+
+=head2 request_version
+
+Sets the response version. Default as C<1.1>.
+
+=cut
 
 has [qw(request_type response_type)] => (
     is      => 'ro',
@@ -76,6 +69,12 @@ has request_version => (
     isa     => 'Str',
     default => sub { return '1.1' },
 );
+
+=head2 order_id
+
+Sets the unique order identifier.
+
+=cut
 
 has order_id => (
     is         => 'ro',
@@ -90,16 +89,58 @@ sub _build_order_id {
     return substr( $merch_txn_ref, 0, 24 );
 }
 
+=head2 currency
+
+Sets the currency like AED or INR etc.
+
+=head2 amount
+
+Sets the amount to be paid.
+
+=head2 redirect_url
+
+Sets your callback url, CCAvenue sends the response back to your callback url with the transaction status.
+
+=head2 cancel_url
+
+Sets your cancel callback url, CCAvenue sends the response back to your callback url with the transaction status.
+
+=cut
+
 has [qw(currency amount redirect_url cancel_url)] => (
     is       => 'ro',
     isa      => 'Str',
     required => 1
 );
 
+=head2 customer_email
+
+Sets customer email.
+
+=head2 customer_name
+
+Sets customer name.
+
+=head2 order_description
+
+Sets your order description.
+
+=head2 extra_param1
+
+Sets the extra parameter sends to gateway, it will be returned back, can be used as session identifier.
+
+=cut
+
 has [qw(customer_email customer_name order_description extra_param1)] => (
     is  => 'ro',
     isa => 'Str',
 );
+
+=head2 language
+
+Sets the language. Default as C<en>.
+
+=cut
 
 has language => (
     is         => 'ro',
@@ -186,37 +227,6 @@ sub payment_form {
     $form .= end_form;
 
     return $form;
-}
-
-=head2 encrypt_data
-
-Data to be encrypted as 128 bit AES encryption.
-
-=cut
-
-sub encrypt_data {
-    my ( $self, $data ) = @_;
-    return unpack(
-        'H*',
-        $self->aes_cipher->encrypt(
-            $data, $self->encryption_key_bin, $self->init_vector
-        )
-    );
-}
-
-=head2 decrypt_data
-
-Decrypte the given encrypted data.
-
-=cut
-
-sub decrypt_data {
-    my ( $self, $encrypted_data ) = @_;
-    return $self->aes_cipher->decrypt(
-        pack( 'H*', $encrypted_data ),
-        $self->encryption_key_bin,
-        $self->init_vector
-    );
 }
 
 =head1 AUTHOR
